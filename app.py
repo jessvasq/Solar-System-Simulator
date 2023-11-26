@@ -46,9 +46,48 @@ class Planet:
         self.distance_to_sun = 0
         #each planet will have a x and y velocity. This will be used to calculate the orbit by moving x and y which will create a circle path
         self.x_vel = 0
-        self.y_val = 0
+        self.y_vel = 0
         
-
+    def attraction(self, other):
+        other_x = other.x
+        other_y = other.y
+        #calculate the distance between the planets
+        distance_x = other_x - self.x
+        distance_y = other_y - self.y
+        distance = math.sqrt(distance_x ** 2 + distance_y ** 2)
+        
+        if other.sun:
+            self.distance_to_sun = distance
+            
+        #calculate the force of gravity between the planets
+        force = self.G * self.mass * other.mass / distance ** 2
+        #theta is the angle between the planets
+        theta = math.atan2(distance_y, distance_x)
+        #force_x and force_y are the x and y components of the force
+        force_x = math.cos(theta) * force
+        force_y = math.sin(theta) * force
+        return force_x, force_y
+    #calculate the force of gravity between the planets
+    def update_position(self, planets):
+        total_fx = total_fy = 0
+        for planet in planets:
+            if self == planet:
+                continue
+            
+            fx, fy = self.attraction(planet)
+            total_fx += fx
+            total_fy += fy
+        
+        #calculate the x and y acceleration or velocity to move the planet
+        self.x_vel += total_fx / self.mass * self.TIMESTEP
+        self.y_vel += total_fy / self.mass * self.TIMESTEP
+        
+        #calculate the x and y position of the planet to move it in a circle
+        self.x += self.x_vel * self.TIMESTEP
+        self.y += self.y_vel * self.TIMESTEP
+        self.orbit.append((self.x, self.y))
+        
+        
 #create a loop to run the game
 def main():
     run=True
@@ -64,9 +103,15 @@ def main():
                         #Planet.AU is the distance from the sun to the earth, we're accessing the AU variable from the Planet class
     
     mercury = Planet(-0.387 * Planet.AU, 0, 8, (80, 78, 81), 3.30 * 10 ** 23)
+    mercury.y_vel = 47.362 * 1000 #47.362 km/s
+    
     venus = Planet(-0.723 * Planet.AU, 0, 14, (255, 153, 51), 4.87 * 10 ** 24)
+    venus.y_vel = 35.02 * 1000 #35.02 km/s
+    
     earth = Planet(-1 * Planet.AU, 0, 16, (100, 149, 237), 5.97219 * 10 ** 24)
+    earth.y_vel = 29.783 * 1000 #29.783 km/s
     mars = Planet(-1.524 * Planet.AU, 0, 12, (188, 39, 50), 6.41 * 10 ** 23)
+    mars.y_vel = 24.077 * 1000 #24.077 km/s
     # jupiter = Planet(-5.203 * Planet.AU, 0, 40, (194, 150, 56), 1.898 * 10 ** 27)
     # saturn = Planet(-9.537 * Planet.AU, 0, 35, (179, 165, 136), 5.683 * 10 ** 26)
     # uranus = Planet(-19.191 * Planet.AU, 0, 25, (215, 242, 252), 8.681 * 10 ** 25)
@@ -80,8 +125,8 @@ def main():
     while run:
         #clock.tick() will make sure the game runs at the same speed on all computers
         clock.tick(60)
-        #update the background color
-        # WIN.fill((255, 255, 255))
+        #update the background color so that every time the planets move, they dont leave a trail
+        WIN.fill((0,0,0))
         # #update the display
         # pygame.display.update()
         
@@ -93,6 +138,7 @@ def main():
                 
         #calculate the force of gravity between the planets
         for planet in planets:
+            planet.update_position(planets) #need to update the position of the planets before drawing them
             planet.draw(WIN)
             
         #update the display after drawing the planets    
