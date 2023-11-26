@@ -7,6 +7,8 @@ pygame.init()
 #set up pygame window
 WIDTH, HEIGHT = 1200, 1000
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
+#initialize the font
+FONT = pygame.font.SysFont("comicsans", 20)
 
 #set up the title
 pygame.display.set_caption("SOLAR SYSTEM SIMULATOR")
@@ -19,19 +21,11 @@ class Planet:
     #gravity constant will be used to calculate the force of gravity between the planets 
     G = 6.67428e-11
     #astronomical unit will be scaled down to fit the pygame window, update this number to make the planets bigger or smaller
-    SCALE = 180 / AU  #1AU = 100pixels
+    SCALE = 250 / AU  #1AU = 100pixels
     #time step will be used to calculate the orbit of the planet
-    TIMESTEP = 36000*24 #represents 1 day, 36000 = #of seconds in an hour
+    TIMESTEP = 3600*24 #represents 1 day, 36000 = #of seconds in an hour
     
-    #use draw method to draw the planet
-    def draw(self, win):
-        #take the planet's value and draw it to scale 
-        x = self.x * self.SCALE + WIDTH / 2 
-        y = self.y*self.SCALE + WIDTH / 2
-        #pass in the window, the color, the x and y coordinates, and the radius of the planet. This will draw the planet
-        pygame.draw.circle(win, self.color, (x,y), self.radius)
-         
-        
+            
     def __init__(self, x, y, radius, color, mass):
         self.x = x
         self.y = y
@@ -48,9 +42,42 @@ class Planet:
         self.x_vel = 0
         self.y_vel = 0
         
+    
+    #use draw method to draw the planet
+    def draw(self, win):
+        #take the planet's value and draw it to scale 
+        x = self.x * self.SCALE + WIDTH / 2 
+        y = self.y * self.SCALE + HEIGHT / 2
+        
+    
+        if len(self.orbit) > 2:
+            #update the orbit to scale, create a new list to store the updated points
+            updated_points = []
+            
+            #iterate through the orbit and update the points to scale
+            for point in self.orbit:
+                x, y = point
+                x = x * self.SCALE + WIDTH / 2
+                y = y * self.SCALE + HEIGHT / 2
+                #add the updated points to the list
+                updated_points.append((x,y))
+            
+            #takes a list of point coordinates and draws a line between them, False means the lines will not be connected
+            pygame.draw.lines(win, self.color, False, updated_points, 2)
+        
+                    
+        #pass in the window, the color, the x and y coordinates, and the radius of the planet. This will draw the planet
+        pygame.draw.circle(win, self.color, (x,y), self.radius)
+        
+               
+        if not self.sun:
+            distance_text = FONT.render(f"{round(self.distance_to_sun / 1000, 1)}km", 1, (255, 255, 255))
+            win.blit(distance_text, (x-distance_text.get_width()/2, y-distance_text.get_height()/2))
+         
+
+        
     def attraction(self, other):
-        other_x = other.x
-        other_y = other.y
+        other_x, other_y = other.x, other.y
         #calculate the distance between the planets
         distance_x = other_x - self.x
         distance_y = other_y - self.y
@@ -97,18 +124,18 @@ def main():
     #initialize the planets
     #the sun will be the center of the solar system
                      #radius,  color,   mass                     
-    sun = Planet(0, 0, 50, (255, 255, 0), 1.98892 * 10 ** 30)
+    sun = Planet(0, 0, 30, (255, 255, 0), 1.98892 * 10**30)
     sun.sun = True ##we set the sun to true so that it will be the center of the solar system and dont have to calculate the distance to the sun
                 #-1 indicates the planet will be on the left side of the sun
                         #Planet.AU is the distance from the sun to the earth, we're accessing the AU variable from the Planet class
     
-    mercury = Planet(-0.387 * Planet.AU, 0, 8, (80, 78, 81), 3.30 * 10 ** 23)
-    mercury.y_vel = 47.362 * 1000 #47.362 km/s
+    mercury = Planet(0.387 * Planet.AU, 0, 8, (80, 78, 81), 3.30 * 10 ** 23)
+    mercury.y_vel = -47.4 * 1000 #47.362 km/s
     
-    venus = Planet(-0.723 * Planet.AU, 0, 14, (255, 153, 51), 4.87 * 10 ** 24)
-    venus.y_vel = 35.02 * 1000 #35.02 km/s
+    venus = Planet(0.723 * Planet.AU, 0, 14, (255, 153, 51), 4.87 * 10 ** 24)
+    venus.y_vel = -35.02 * 1000 #35.02 km/s
     
-    earth = Planet(-1 * Planet.AU, 0, 16, (100, 149, 237), 5.97219 * 10 ** 24)
+    earth = Planet(-1 * Planet.AU, 0, 16, (100, 149, 237), 5.9742 * 10 ** 24)
     earth.y_vel = 29.783 * 1000 #29.783 km/s
     mars = Planet(-1.524 * Planet.AU, 0, 12, (188, 39, 50), 6.41 * 10 ** 23)
     mars.y_vel = 24.077 * 1000 #24.077 km/s
@@ -119,7 +146,7 @@ def main():
     # pluto = Planet(-39.482 * Planet.AU, 0, 10, (204, 84, 65), 1.309 * 10 ** 22)
 
     #add the planets to a list    
-    planets = [sun, mercury, venus, earth, mars]
+    planets = [sun, earth, mars, mercury, venus]
     
     #create a loop to run the game
     while run:
