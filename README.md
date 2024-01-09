@@ -9,3 +9,6 @@ The Solar System Simulator replicates the orbital movements of various planets a
 ## SCREENSHOTS ##
 ![Screenshot from 2024-01-08 18-58-27](https://github.com/jessvasq/Solar-System-Simulator-/assets/119137671/7046539a-7183-4076-9498-66104ecc53de)
 
+
+##### Credits #####
+###### TechwithTim ######
